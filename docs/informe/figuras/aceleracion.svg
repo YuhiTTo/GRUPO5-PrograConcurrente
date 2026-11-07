@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="540" viewBox="0 0 1100 540" font-family="Liberation Sans" font-size="15"><rect width="1100" height="540" fill="#fff"/>
+<text x="550.0" y="32" text-anchor="middle" font-size="19" font-weight="bold">Tiempo de entrenamiento y aceleración según el número de workers</text>
+<text x="550.0" y="54" text-anchor="middle" font-size="13">Datos reales: 1 969 062 filas × 70 características, 100 épocas, lote completo, CPU de 16 hilos</text>
+<line x1="110" y1="440.0" x2="980" y2="440.0" stroke="#e5e5e5"/><text x="100" y="445.0" text-anchor="end" font-size="13">0</text>
+<line x1="110" y1="355.9090909090909" x2="980" y2="355.9090909090909" stroke="#e5e5e5"/><text x="100" y="360.9090909090909" text-anchor="end" font-size="13">5</text>
+<line x1="110" y1="271.8181818181818" x2="980" y2="271.8181818181818" stroke="#e5e5e5"/><text x="100" y="276.8181818181818" text-anchor="end" font-size="13">10</text>
+<line x1="110" y1="187.72727272727272" x2="980" y2="187.72727272727272" stroke="#e5e5e5"/><text x="100" y="192.72727272727272" text-anchor="end" font-size="13">15</text>
+<line x1="110" y1="103.63636363636363" x2="980" y2="103.63636363636363" stroke="#e5e5e5"/><text x="100" y="108.63636363636363" text-anchor="end" font-size="13">20</text>
+<text x="990" y="421.875" font-size="13" fill="#b03a2e">1x</text>
+<text x="990" y="398.75" font-size="13" fill="#b03a2e">2x</text>
+<text x="990" y="352.5" font-size="13" fill="#b03a2e">4x</text>
+<text x="990" y="260.0" font-size="13" fill="#b03a2e">8x</text>
+<text x="990" y="75.0" font-size="13" fill="#b03a2e">16x</text>
+<rect x="162.0" y="102.24045454545461" width="70" height="337.7595454545454" fill="#5b8fd1"/>
+<text x="197.0" y="94.24045454545461" text-anchor="middle" font-size="13">20.08 s</text>
+<text x="197.0" y="462" text-anchor="middle">1</text>
+<rect x="336.0" y="264.5022727272727" width="70" height="175.49772727272727" fill="#5b8fd1"/>
+<text x="371.0" y="256.5022727272727" text-anchor="middle" font-size="13">10.44 s</text>
+<text x="371.0" y="462" text-anchor="middle">2</text>
+<rect x="510.0" y="335.40772727272724" width="70" height="104.59227272727276" fill="#5b8fd1"/>
+<text x="545.0" y="327.40772727272724" text-anchor="middle" font-size="13">6.22 s</text>
+<text x="545.0" y="462" text-anchor="middle">4</text>
+<rect x="684.0" y="369.96909090909094" width="70" height="70.03090909090906" fill="#5b8fd1"/>
+<text x="719.0" y="361.96909090909094" text-anchor="middle" font-size="13">4.16 s</text>
+<text x="719.0" y="462" text-anchor="middle">8</text>
+<rect x="858.0" y="385.47545454545457" width="70" height="54.52454545454543" fill="#5b8fd1"/>
+<text x="893.0" y="377.47545454545457" text-anchor="middle" font-size="13">3.24 s</text>
+<text x="893.0" y="462" text-anchor="middle">16</text>
+<polyline points="197.0,416.875 371.0,393.75 545.0,347.5 719.0,255.0 893.0,70.0" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="6,4"/>
+<polyline points="197.0,416.875 371.0,395.4940704360326 545.0,365.3224995980061 719.0,328.4679695004803 893.0,296.74911320172737" fill="none" stroke="#b03a2e" stroke-width="3"/>
+<circle cx="197.0" cy="416.875" r="5" fill="#b03a2e"/><text x="207.0" y="406.875" font-size="13" fill="#b03a2e" font-weight="bold">1.00x</text>
+<circle cx="371.0" cy="395.4940704360326" r="5" fill="#b03a2e"/><text x="381.0" y="385.4940704360326" font-size="13" fill="#b03a2e" font-weight="bold">1.92x</text>
+<circle cx="545.0" cy="365.3224995980061" r="5" fill="#b03a2e"/><text x="555.0" y="355.3224995980061" font-size="13" fill="#b03a2e" font-weight="bold">3.23x</text>
+<circle cx="719.0" cy="328.4679695004803" r="5" fill="#b03a2e"/><text x="729.0" y="318.4679695004803" font-size="13" fill="#b03a2e" font-weight="bold">4.82x</text>
+<circle cx="893.0" cy="296.74911320172737" r="5" fill="#b03a2e"/><text x="903.0" y="286.74911320172737" font-size="13" fill="#b03a2e" font-weight="bold">6.19x</text>
+<line x1="110" y1="440" x2="980" y2="440" stroke="#333"/>
+<text x="545.0" y="490" text-anchor="middle">Número de workers (goroutines)</text>
+<text transform="translate(40,255.0) rotate(-90)" text-anchor="middle">Tiempo de entrenamiento (s)</text>
+<text transform="translate(1040,255.0) rotate(90)" text-anchor="middle" fill="#b03a2e">Aceleración</text>
+<rect x="250" y="503" width="18" height="14" fill="#5b8fd1"/><text x="275" y="515" font-size="13">Tiempo</text>
+<line x1="370" y1="510" x2="400" y2="510" stroke="#b03a2e" stroke-width="3"/><text x="408" y="515" font-size="13">Aceleración medida</text>
+<line x1="580" y1="510" x2="610" y2="510" stroke="#999" stroke-width="2" stroke-dasharray="6,4"/><text x="618" y="515" font-size="13">Aceleración ideal (lineal)</text>
+</svg>
