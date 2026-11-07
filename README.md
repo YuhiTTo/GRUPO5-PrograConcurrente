@@ -111,7 +111,8 @@ Datos: OECE, todos los años (corte del 4 de octubre de 2026). Equipo de 16 CPUs
 | Ítems procesados en la limpieza concurrente | 5,145,770 en 1.96 s |
 | Procesos etiquetados | 2,461,327 (20.6% cancelados o desiertos) |
 | Entrenamiento / prueba | 1,969,062 / 492,265 filas |
-| Modelo (lote completo, 100 épocas) | AUC 0.637, sensibilidad 0.736, F1 0.382 |
+| Modelo base, partición aleatoria (lote completo, 100 épocas) | AUC 0.637, sensibilidad 0.736, F1 0.382 |
+| Modelo base, prueba con 2025 | AUC 0.545: se degrada porque depende del año y de los montos |
 
 Comparación de workers (lote completo, 100 épocas):
 
@@ -126,6 +127,40 @@ Comparación de workers (lote completo, 100 épocas):
 La pérdida y el AUC son idénticos con cualquier número de workers: paralelizar
 no cambia el resultado. La eficiencia baja con muchos workers porque el ancho
 de banda de memoria y la barrera de cada paso pasan a ser el límite.
+
+## Modelo seleccionado: experimentos controlados con validación temporal
+
+Las carpetas `preparacion/`, `experimentos/` y `diagnosticos/` contienen el
+modelo que se reporta en el informe. Sus diferencias con el modelo base:
+
+- **Sin variables con riesgo de fuga:** no usa montos, presupuesto ni número
+  de postores, porque `main.csv` es un registro consolidado que puede traer
+  valores posteriores a la convocatoria.
+- **Variables:** entidad compradora y palabras del título y de la descripción,
+  codificadas con *feature hashing* (13,037 dimensiones).
+- **Validación temporal:** entrena con 2018–2023, elige la época y el umbral
+  con 2024 y prueba con 2025.
+
+```sh
+go run ./preparacion/preparar_dataset_controlado.go
+go run ./experimentos/entrenar_paralelo_controlado.go -desde 2018 -validacion 2024 \
+    -workers 16 -usar-descripcion=true -evaluar-prueba=true
+go run ./experimentos/entrenar_random_forest_controlado.go -desde 2019 -validacion 2024 \
+    -arboles 60 -workers 16 -usar-descripcion=true
+```
+
+| Modelo | Validación | AUC | Precisión | Sensibilidad | F1 |
+|---|---|---|---|---|---|
+| Regresión logística controlada | 2024 | 0.663 | 0.269 | 0.734 | 0.393 |
+| Regresión logística controlada | 2025 | 0.630 | 0.276 | 0.741 | 0.402 |
+| Random Forest controlado (60 árboles) | 2024 | 0.653 | 0.248 | 0.916 | 0.391 |
+
+## Informe PC3
+
+El informe del entregable está en `docs/informe/` en Word y PDF. Las figuras
+están como SVG en `docs/informe/figuras/`. Antes de entregarlo, completen
+la sección, los nombres y códigos de los integrantes, los porcentajes del
+reporte de participación y la captura del tablero Kanban.
 
 ## Pruebas
 

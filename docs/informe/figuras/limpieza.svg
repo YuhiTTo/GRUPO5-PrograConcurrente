@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="380" viewBox="0 0 1100 380" font-family="Liberation Sans" font-size="15">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#333"/></marker></defs>
+<rect width="1100" height="380" fill="#fff"/>
+<text x="550" y="30" text-anchor="middle" font-size="19" font-weight="bold">Pipeline concurrente de limpieza y etiquetado (limpiar_concurrente.go)</text>
+<rect x="30" y="140" width="170" height="90" rx="8" fill="#e3edf9" stroke="#1f5fa8"/>
+<text x="115" y="170" text-anchor="middle" font-weight="bold">Productor</text>
+<text x="115" y="192" text-anchor="middle" font-size="13">lee tender_items.csv</text>
+<text x="115" y="212" text-anchor="middle" font-size="13">en lotes de 4 096 filas</text>
+<rect x="250" y="160" width="130" height="50" rx="25" fill="#fff4d6" stroke="#b8860b"/>
+<text x="315" y="190" text-anchor="middle" font-size="13">canal jobs</text>
+<g font-size="13">
+<rect x="430" y="60" width="180" height="60" rx="8" fill="#d8ecd8" stroke="#2e7d32"/><text x="520" y="86" text-anchor="middle" font-weight="bold">Worker 1</text><text x="520" y="106" text-anchor="middle">normaliza y clasifica</text>
+<rect x="430" y="155" width="180" height="60" rx="8" fill="#d8ecd8" stroke="#2e7d32"/><text x="520" y="181" text-anchor="middle" font-weight="bold">Worker 2</text><text x="520" y="201" text-anchor="middle">estado → bandera</text>
+<text x="520" y="250" text-anchor="middle" font-size="20">⋮</text>
+<rect x="430" y="270" width="180" height="60" rx="8" fill="#d8ecd8" stroke="#2e7d32"/><text x="520" y="296" text-anchor="middle" font-weight="bold">Worker N</text><text x="520" y="316" text-anchor="middle">(flag -workers)</text>
+</g>
+<rect x="660" y="160" width="140" height="50" rx="25" fill="#fff4d6" stroke="#b8860b"/>
+<text x="730" y="190" text-anchor="middle" font-size="13">canal resultados</text>
+<rect x="850" y="130" width="220" height="110" rx="8" fill="#e3edf9" stroke="#1f5fa8"/>
+<text x="960" y="158" text-anchor="middle" font-weight="bold">Agregador único</text>
+<text x="960" y="180" text-anchor="middle" font-size="13">map[ocid] |= bandera</text>
+<text x="960" y="200" text-anchor="middle" font-size="13">(sin mutex: un solo escritor)</text>
+<text x="960" y="222" text-anchor="middle" font-size="13">→ etiquetas_procesos.csv</text>
+<line x1="200" y1="185" x2="248" y2="185" stroke="#333" stroke-width="2" marker-end="url(#a)"/>
+<line x1="380" y1="185" x2="428" y2="92" stroke="#333" stroke-width="2" marker-end="url(#a)"/>
+<line x1="380" y1="185" x2="428" y2="185" stroke="#333" stroke-width="2" marker-end="url(#a)"/>
+<line x1="380" y1="185" x2="428" y2="298" stroke="#333" stroke-width="2" marker-end="url(#a)"/>
+<line x1="610" y1="92" x2="658" y2="183" stroke="#333" stroke-width="2" marker-end="url(#a)"/>
+<line x1="610" y1="185" x2="658" y2="185" stroke="#333" stroke-width="2" marker-end="url(#a)"/>
+<line x1="610" y1="298" x2="658" y2="190" stroke="#333" stroke-width="2" marker-end="url(#a)"/>
+<line x1="800" y1="185" x2="848" y2="185" stroke="#333" stroke-width="2" marker-end="url(#a)"/>
+<text x="315" y="240" text-anchor="middle" font-size="12">fan-out</text>
+<text x="730" y="240" text-anchor="middle" font-size="12">fan-in</text>
+<text x="550" y="365" text-anchor="middle" font-size="13">sync.WaitGroup cierra el canal de resultados cuando terminan todos los workers; el error de lectura vuelve por un canal con buffer.</text>
+</svg>
