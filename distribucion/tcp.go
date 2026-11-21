@@ -8,8 +8,9 @@ import (
 )
 
 const (
-	TimeoutConexion = 5 * time.Second
-	TimeoutMensaje  = 30 * time.Second
+	TimeoutConexion      = 5 * time.Second
+	TimeoutMensaje       = 30 * time.Second
+	TimeoutEsperaTrabajo = 5 * time.Minute
 )
 
 // EscucharTCP inicia un servidor TCP en la dirección indicada.

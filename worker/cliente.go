@@ -77,7 +77,7 @@ func EjecutarTCP(
 	for {
 		mensaje, err := distribucion.RecibirMensajeTCP(
 			conn,
-			distribucion.TimeoutMensaje,
+			distribucion.TimeoutEsperaTrabajo,
 		)
 		if err != nil {
 			return fmt.Errorf("error recibiendo instrucción: %w", err)
