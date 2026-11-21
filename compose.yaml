@@ -1,0 +1,79 @@
+services:
+  coordinador:
+    image: grupo5-pc4:latest
+    command:
+      - "./coordinador"
+      - "-addr"
+      - "0.0.0.0:9000"
+      - "-workers"
+      - "4"
+      - "-epocas"
+      - "1"
+      - "-lote"
+      - "8192"
+      - "-salida"
+      - "/app/data/modelo_pc4_docker_4workers.json"
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "127.0.0.1:9000:9000"
+
+  worker-1:
+    image: grupo5-pc4:latest
+    command:
+      - "./worker"
+      - "-id"
+      - "worker-1"
+      - "-coordinador"
+      - "coordinador:9000"
+      - "-goroutines"
+      - "2"
+    volumes:
+      - ./data:/app/data:ro
+    depends_on:
+      - coordinador
+
+  worker-2:
+    image: grupo5-pc4:latest
+    command:
+      - "./worker"
+      - "-id"
+      - "worker-2"
+      - "-coordinador"
+      - "coordinador:9000"
+      - "-goroutines"
+      - "2"
+    volumes:
+      - ./data:/app/data:ro
+    depends_on:
+      - coordinador
+
+  worker-3:
+    image: grupo5-pc4:latest
+    command:
+      - "./worker"
+      - "-id"
+      - "worker-3"
+      - "-coordinador"
+      - "coordinador:9000"
+      - "-goroutines"
+      - "2"
+    volumes:
+      - ./data:/app/data:ro
+    depends_on:
+      - coordinador
+
+  worker-4:
+    image: grupo5-pc4:latest
+    command:
+      - "./worker"
+      - "-id"
+      - "worker-4"
+      - "-coordinador"
+      - "coordinador:9000"
+      - "-goroutines"
+      - "2"
+    volumes:
+      - ./data:/app/data:ro
+    depends_on:
+      - coordinador
