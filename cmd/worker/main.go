@@ -38,7 +38,17 @@ func main() {
 		"Ruta del modelo de referencia de PC3",
 	)
 
+	goroutines := flag.Int(
+		"goroutines",
+		1,
+		"Cantidad de goroutines para calcular el gradiente local",
+	)
+
 	flag.Parse()
+
+	if *goroutines < 1 {
+		log.Fatal("La cantidad de goroutines debe ser mayor que cero")
+	}
 
 	// Validar parámetros.
 	if strings.TrimSpace(*id) == "" {
@@ -118,6 +128,12 @@ func main() {
 		*id,
 		ejemplos,
 	)
+
+	if err := procesador.ConfigurarGoroutines(*goroutines); err != nil {
+		log.Fatalf("Error configurando goroutines: %v", err)
+	}
+
+	fmt.Printf("Goroutines configuradas: %d\n", procesador.Goroutines)
 
 	if err != nil {
 		log.Fatalf("Error inicializando worker: %v", err)

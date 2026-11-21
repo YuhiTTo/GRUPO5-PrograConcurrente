@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"math"
 	"testing"
 
 	"grupo5-prograconcurrente/distribucion"
@@ -142,5 +143,85 @@ func TestNuevoProcesadorRechazaIDVacio(t *testing.T) {
 
 	if err == nil {
 		t.Fatal("se esperaba error por ID vacío")
+	}
+}
+
+func TestProcesadorCalculaGradienteParalelo(t *testing.T) {
+	datos := crearDatosPrueba()
+
+	procesador, err := NuevoProcesador("worker-1", datos)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if procesador.Goroutines != 1 {
+		t.Fatalf("se esperaba 1 goroutine por defecto, se obtuvo %d",
+			procesador.Goroutines)
+	}
+
+	if err := procesador.ConfigurarGoroutines(2); err != nil {
+		t.Fatal(err)
+	}
+
+	mensaje := crearMensajeEntrenamiento()
+
+	respuesta, err := procesador.Procesar(mensaje)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	modelo := &modelocontrolado.Modelo{
+		Pesos:          mensaje.Pesos,
+		PesoPositivo:   mensaje.PesoPositivo,
+		UsaDescripcion: mensaje.UsaDescripcion,
+	}
+
+	esperado, err := modelo.CalcularGradiente(
+		datos[mensaje.Inicio:mensaje.Fin],
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if respuesta.Muestras != esperado.Muestras {
+		t.Fatal("cantidad de muestras diferente")
+	}
+
+	if respuesta.Positivos != esperado.Positivos {
+		t.Fatal("cantidad de positivos diferente")
+	}
+
+	if math.Abs(respuesta.SumaPesos-esperado.SumaPesos) > 1e-12 {
+		t.Fatal("suma de pesos diferente")
+	}
+
+	for i := range esperado.Gradiente {
+		diferencia := math.Abs(
+			respuesta.Gradiente[i] - esperado.Gradiente[i],
+		)
+
+		if diferencia > 1e-10 {
+			t.Fatalf("gradiente diferente en índice %d: %g", i, diferencia)
+		}
+	}
+}
+
+func TestConfigurarGoroutinesRechazaValoresInvalidos(t *testing.T) {
+	procesador, err := NuevoProcesador(
+		"worker-1",
+		crearDatosPrueba(),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := procesador.ConfigurarGoroutines(0); err == nil {
+		t.Fatal("se esperaba error para cero goroutines")
+	}
+
+	var procesadorNulo *Procesador
+
+	if err := procesadorNulo.ConfigurarGoroutines(2); err == nil {
+		t.Fatal("se esperaba error para procesador nulo")
 	}
 }

@@ -11,8 +11,9 @@ import (
 
 // Procesador representa el motor de cálculo local de un worker.
 type Procesador struct {
-	ID    string
-	Datos []modelocontrolado.Ejemplo
+	ID         string
+	Datos      []modelocontrolado.Ejemplo
+	Goroutines int
 }
 
 // NuevoProcesador inicializa un worker con sus datos locales.
@@ -30,9 +31,23 @@ func NuevoProcesador(
 	}
 
 	return &Procesador{
-		ID:    id,
-		Datos: datos,
+		ID:         id,
+		Datos:      datos,
+		Goroutines: 1,
 	}, nil
+}
+
+func (p *Procesador) ConfigurarGoroutines(cantidad int) error {
+	if p == nil {
+		return fmt.Errorf("procesador no inicializado")
+	}
+
+	if cantidad < 1 {
+		return fmt.Errorf("la cantidad de goroutines debe ser mayor que cero")
+	}
+
+	p.Goroutines = cantidad
+	return nil
 }
 
 // Procesar calcula el gradiente del segmento asignado
@@ -84,7 +99,19 @@ func (p *Procesador) Procesar(
 	subconjunto := p.Datos[mensaje.Inicio:mensaje.Fin]
 
 	// Calcular el gradiente local.
-	parcial, err := modelo.CalcularGradiente(subconjunto)
+	// Calcular el gradiente local.
+	var parcial modelocontrolado.GradienteParcial
+	var err error
+
+	if p.Goroutines > 1 {
+		parcial, err = modelo.CalcularGradienteParalelo(
+			subconjunto,
+			p.Goroutines,
+		)
+	} else {
+		parcial, err = modelo.CalcularGradiente(subconjunto)
+	}
+
 	if err != nil {
 		return distribucion.Mensaje{}, fmt.Errorf(
 			"error calculando gradiente: %w", err,
