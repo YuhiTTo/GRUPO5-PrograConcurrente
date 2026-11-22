@@ -1,0 +1,189 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "API de Predicción de Riesgo en Compras Públicas",
+        "version": "1.0.0",
+        "description": "API REST desarrollada en Go para estimar el riesgo de desierto o cancelación de contrataciones públicas. Prototipo académico basado en el modelo de referencia PC3."
+    },
+    "servers": [
+        {
+            "url": "/",
+            "description": "Servidor de la API"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Salud",
+            "description": "Verificación del funcionamiento del servidor"
+        },
+        {
+            "name": "Predicciones",
+            "description": "Estimación de riesgo de contrataciones"
+        }
+    ],
+    "paths": {
+        "/health": {
+            "get": {
+                "tags": [
+                    "Salud"
+                ],
+                "summary": "Verificar estado de la API",
+                "operationId": "verificarSalud",
+                "responses": {
+                    "200": {
+                        "description": "API funcionando correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "estado": {
+                                            "type": "string",
+                                            "example": "ok"
+                                        },
+                                        "servicio": {
+                                            "type": "string",
+                                            "example": "api-pc4"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/predicciones": {
+            "post": {
+                "tags": [
+                    "Predicciones"
+                ],
+                "summary": "Predecir riesgo de una contratación",
+                "description": "Recibe los datos de una contratación y estima la probabilidad de que termine desierta o cancelada usando el modelo de referencia PC3.",
+                "operationId": "realizarPrediccion",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SolicitudPrediccion"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Predicción calculada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RespuestaPrediccion"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Solicitud inválida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "SolicitudPrediccion": {
+                "type": "object",
+                "required": [
+                    "fecha_publicacion"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                    "ocid": {
+                        "type": "string",
+                        "example": "ocds-demo-001"
+                    },
+                    "metodo": {
+                        "type": "string",
+                        "example": "open"
+                    },
+                    "categoria": {
+                        "type": "string",
+                        "example": "goods"
+                    },
+                    "fecha_publicacion": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-05-20"
+                    },
+                    "buyer_id": {
+                        "type": "string",
+                        "example": "ENTIDAD-DEMO"
+                    },
+                    "metodo_detalle": {
+                        "type": "string",
+                        "example": "Licitacion Publica"
+                    },
+                    "titulo": {
+                        "type": "string",
+                        "example": "Adquisicion de equipos informaticos"
+                    },
+                    "descripcion": {
+                        "type": "string",
+                        "example": "Compra de computadoras para oficinas"
+                    }
+                }
+            },
+            "RespuestaPrediccion": {
+                "type": "object",
+                "properties": {
+                    "ocid": {
+                        "type": "string",
+                        "example": "ocds-demo-001"
+                    },
+                    "probabilidad": {
+                        "type": "number",
+                        "format": "double",
+                        "example": 0.11029151429307214
+                    },
+                    "clase_predicha": {
+                        "type": "integer",
+                        "enum": [
+                            0,
+                            1
+                        ],
+                        "example": 0
+                    },
+                    "umbral": {
+                        "type": "number",
+                        "format": "double",
+                        "example": 0.22
+                    },
+                    "interpretacion": {
+                        "type": "string",
+                        "example": "Menor riesgo estimado"
+                    },
+                    "modelo": {
+                        "type": "string",
+                        "example": "Referencia PC3"
+                    }
+                }
+            },
+            "Error": {
+                "type": "object",
+                "properties": {
+                    "error": {
+                        "type": "string",
+                        "example": "fecha de publicación inválida"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -77,3 +77,11 @@ services:
       - ./data:/app/data:ro
     depends_on:
       - coordinador
+
+  api:
+    image: grupo5-pc4:latest
+    command:
+      - "./api"
+    ports:
+      - "127.0.0.1:8080:8080"
+    restart: unless-stopped
