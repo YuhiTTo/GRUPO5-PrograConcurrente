@@ -1,14 +1,20 @@
 package main
 
 import (
+	"context"
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
 	"time"
 
 	"grupo5-prograconcurrente/modelocontrolado"
+	"grupo5-prograconcurrente/persistencia"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 //go:embed openapi.json
@@ -60,6 +66,7 @@ type SolicitudPrediccion struct {
 
 // Respuesta de la predicción.
 type RespuestaPrediccion struct {
+	ID             string  `json:"id,omitempty"`
 	OCID           string  `json:"ocid"`
 	Probabilidad   float64 `json:"probabilidad"`
 	ClasePredicha  uint8   `json:"clase_predicha"`
@@ -85,6 +92,23 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error cargando modelo: %v", err)
 	}
+
+	// Conectar con MongoDB al iniciar la API.
+	ctxConexion, cancelarConexion := context.WithTimeout(
+		context.Background(),
+		10*time.Second,
+	)
+
+	almacen, err := persistencia.Conectar(ctxConexion)
+	cancelarConexion()
+
+	if err != nil {
+		log.Fatalf("No se pudo conectar con MongoDB: %v", err)
+	}
+
+	log.Println("Conexión con MongoDB establecida correctamente")
+
+	defer almacen.Cerrar(context.Background())
 
 	mux := http.NewServeMux()
 
@@ -157,13 +181,94 @@ func main() {
 			interpretacion = "Mayor riesgo estimado de desierto o cancelación"
 		}
 
+		// Preparar los datos que guardaremos en MongoDB.
+		documento := persistencia.DocumentoPrediccion{
+			OCID:             entrada.OCID,
+			Metodo:           entrada.Metodo,
+			Categoria:        entrada.Categoria,
+			FechaPublicacion: entrada.FechaPublicacion,
+			BuyerID:          entrada.BuyerID,
+			MetodoDetalle:    entrada.MetodoDetalle,
+			Titulo:           entrada.Titulo,
+			Descripcion:      entrada.Descripcion,
+			Probabilidad:     prediccion.Probabilidad,
+			ClasePredicha:    prediccion.ClasePredicha,
+			Umbral:           prediccion.Umbral,
+			Interpretacion:   interpretacion,
+			Modelo:           "Referencia PC3",
+			FechaConsulta:    time.Now().UTC(),
+		}
+
+		// Guardar la predicción en MongoDB.
+		ctxGuardado, cancelarGuardado := context.WithTimeout(
+			r.Context(),
+			5*time.Second,
+		)
+
+		id, err := almacen.Guardar(ctxGuardado, documento)
+		cancelarGuardado()
+
+		if err != nil {
+			log.Printf("Error guardando predicción: %v", err)
+
+			responderJSON(
+				w,
+				http.StatusServiceUnavailable,
+				map[string]string{
+					"error": "No fue posible guardar la predicción",
+				},
+			)
+			return
+		}
+
+		// Responder después del guardado exitoso.
 		responderJSON(w, http.StatusOK, RespuestaPrediccion{
+			ID:             id,
 			OCID:           entrada.OCID,
 			Probabilidad:   prediccion.Probabilidad,
 			ClasePredicha:  prediccion.ClasePredicha,
 			Umbral:         prediccion.Umbral,
 			Interpretacion: interpretacion,
 			Modelo:         "Referencia PC3",
+		})
+
+	}) // Cierra el endpoint POST
+
+	// GET: consultar una predicción guardada en MongoDB por su ID.
+	mux.HandleFunc("GET /api/v1/predicciones/{id}", func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+
+		// Comprobar que el identificador tiene formato válido.
+		if _, err := bson.ObjectIDFromHex(id); err != nil {
+			responderJSON(w, http.StatusBadRequest, map[string]string{
+				"error": "El identificador no es válido",
+			})
+			return
+		}
+
+		ctx, cancelar := context.WithTimeout(r.Context(), 5*time.Second)
+		defer cancelar()
+
+		documento, err := almacen.BuscarPorID(ctx, id)
+
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			responderJSON(w, http.StatusNotFound, map[string]string{
+				"error": "Predicción no encontrada",
+			})
+			return
+		}
+
+		if err != nil {
+			log.Printf("Error consultando MongoDB: %v", err)
+			responderJSON(w, http.StatusServiceUnavailable, map[string]string{
+				"error": "No fue posible consultar la predicción",
+			})
+			return
+		}
+
+		responderJSON(w, http.StatusOK, map[string]any{
+			"id":         id,
+			"prediccion": documento,
 		})
 	})
 
