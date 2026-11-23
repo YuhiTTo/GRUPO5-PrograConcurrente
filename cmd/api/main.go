@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"time"
 
+	"grupo5-prograconcurrente/cache"
 	"grupo5-prograconcurrente/modelocontrolado"
 	"grupo5-prograconcurrente/persistencia"
 
@@ -75,6 +76,17 @@ type RespuestaPrediccion struct {
 	Modelo         string  `json:"modelo"`
 }
 
+// Tiempo de vida de las entradas de Redis.
+const ttlCache = 10 * time.Minute
+
+// prediccionCacheada es la parte del resultado que depende solo de las
+// características del modelo, por lo que se puede reutilizar.
+type prediccionCacheada struct {
+	Probabilidad  float64 `json:"probabilidad"`
+	ClasePredicha uint8   `json:"clase_predicha"`
+	Umbral        float64 `json:"umbral"`
+}
+
 func responderJSON(w http.ResponseWriter, estado int, datos any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(estado)
@@ -109,6 +121,22 @@ func main() {
 	log.Println("Conexión con MongoDB establecida correctamente")
 
 	defer almacen.Cerrar(context.Background())
+
+	// Redis es opcional: si no responde, la API sigue funcionando sin caché.
+	ctxRedis, cancelarRedis := context.WithTimeout(
+		context.Background(),
+		3*time.Second,
+	)
+	redisCache, err := cache.Conectar(ctxRedis)
+	cancelarRedis()
+
+	if err != nil {
+		log.Printf("Redis no disponible, se continúa sin caché: %v", err)
+		redisCache = nil
+	} else {
+		log.Println("Conexión con Redis establecida correctamente")
+		defer redisCache.Cerrar()
+	}
 
 	mux := http.NewServeMux()
 
@@ -168,12 +196,50 @@ func main() {
 			Descripcion:      entrada.Descripcion,
 		}
 
-		prediccion, err := modelo.Predecir(registro)
-		if err != nil {
-			responderJSON(w, http.StatusBadRequest, map[string]string{
-				"error": err.Error(),
-			})
-			return
+		// Las predicciones precalculadas se reutilizan desde Redis.
+		claveCache := cache.ClavePrediccion(
+			entrada.Metodo,
+			entrada.Categoria,
+			entrada.FechaPublicacion,
+			entrada.BuyerID,
+			entrada.MetodoDetalle,
+			entrada.Titulo,
+			entrada.Descripcion,
+		)
+
+		var prediccion prediccionCacheada
+		acierto := false
+
+		if bruto, ok := redisCache.Obtener(r.Context(), claveCache); ok {
+			if json.Unmarshal(bruto, &prediccion) == nil {
+				acierto = true
+			}
+		}
+
+		if !acierto {
+			calculada, err := modelo.Predecir(registro)
+			if err != nil {
+				responderJSON(w, http.StatusBadRequest, map[string]string{
+					"error": err.Error(),
+				})
+				return
+			}
+
+			prediccion = prediccionCacheada{
+				Probabilidad:  calculada.Probabilidad,
+				ClasePredicha: calculada.ClasePredicha,
+				Umbral:        calculada.Umbral,
+			}
+
+			if bruto, err := json.Marshal(prediccion); err == nil {
+				redisCache.Guardar(r.Context(), claveCache, bruto, ttlCache)
+			}
+		}
+
+		if acierto {
+			w.Header().Set("X-Cache", "HIT")
+		} else {
+			w.Header().Set("X-Cache", "MISS")
 		}
 
 		interpretacion := "Menor riesgo estimado"
@@ -246,6 +312,18 @@ func main() {
 			return
 		}
 
+		if bruto, ok := redisCache.Obtener(r.Context(), cache.ClaveID(id)); ok {
+			var cacheado persistencia.DocumentoPrediccion
+			if json.Unmarshal(bruto, &cacheado) == nil {
+				w.Header().Set("X-Cache", "HIT")
+				responderJSON(w, http.StatusOK, map[string]any{
+					"id":         id,
+					"prediccion": cacheado,
+				})
+				return
+			}
+		}
+
 		ctx, cancelar := context.WithTimeout(r.Context(), 5*time.Second)
 		defer cancelar()
 
@@ -266,6 +344,11 @@ func main() {
 			return
 		}
 
+		if bruto, err := json.Marshal(documento); err == nil {
+			redisCache.Guardar(r.Context(), cache.ClaveID(id), bruto, ttlCache)
+		}
+
+		w.Header().Set("X-Cache", "MISS")
 		responderJSON(w, http.StatusOK, map[string]any{
 			"id":         id,
 			"prediccion": documento,

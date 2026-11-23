@@ -155,6 +155,55 @@ go run ./experimentos/entrenar_random_forest_controlado.go -desde 2019 -validaci
 | Regresión logística controlada | 2025 | 0.630 | 0.276 | 0.741 | 0.402 |
 | Random Forest controlado (60 árboles) | 2024 | 0.653 | 0.248 | 0.916 | 0.391 |
 
+## PC4: cluster TCP, API REST, MongoDB y Redis
+
+```
+                       TCP (puerto 9000)
+  worker-1..4  <────────────────────────────>  coordinador
+  (gradientes por rango de mini-lote)          (AdamW, pesos globales)
+
+  cliente ──HTTP──> api ──> Redis (caché)  ──miss──> modelo + MongoDB
+                     └─ /docs (Swagger), /openapi.json, /health
+```
+
+- **Cluster:** `cmd/coordinador` reparte pesos y rangos de mini-lotes; cada
+  `cmd/worker` calcula gradientes con goroutines y los devuelve por TCP.
+  Resultados en `docs/benchmark_pc4.md`.
+- **API:** `cmd/api` expone `POST /api/v1/predicciones` y
+  `GET /api/v1/predicciones/{id}`. Documentación en `http://localhost:8080/docs`.
+- **MongoDB (persistente):** base `compras_publicas_pc4`, colección
+  `predicciones`, un documento por consulta.
+- **Redis (caché):** guarda predicciones ya calculadas (clave por hash de las
+  características) y lecturas por id, con TTL de 10 minutos. Es opcional: si
+  Redis cae, la API sigue respondiendo. La cabecera `X-Cache` indica `HIT` o `MISS`.
+
+### Puesta en marcha
+
+```sh
+cp .env.example .env            # cambie las contraseñas
+docker compose up -d --build mongo redis api
+curl localhost:8080/health
+```
+
+Para el entrenamiento distribuido hace falta `data/entrenamiento_controlado.csv`,
+que genera `go run ./preparacion/preparar_dataset_controlado.go` a partir de
+los CSV de OECE (ver "Flujo de datos"). Después:
+
+```sh
+docker compose up --build coordinador worker-1 worker-2 worker-3 worker-4
+```
+
+### Latencia de la API (requisito: menos de 100 ms)
+
+```sh
+go run ./cmd/medir_latencia -n 1000 -csv docs/evidencias/latencia_api_pc4.csv
+```
+
+Medición del 22/11/2026 (Docker Compose en una sola máquina, 1000 solicitudes,
+50 entradas distintas): p50 0.14 ms, p95 0.23 ms, p99 0.36 ms, máximo 5.1 ms.
+Datos en `docs/evidencias/latencia_api_pc4.csv`. Es latencia local por
+loopback; no incluye red externa.
+
 ## Informe PC3
 
 El informe del entregable está en `docs/informe/` en Word y PDF. Las figuras
@@ -165,7 +214,7 @@ reporte de participación y la captura del tablero Kanban.
 ## Pruebas
 
 ```sh
-go test -race ./ml                                       # pruebas con detector de carreras
+go test -race ./ml ./datos ./distribucion ./modelocontrolado ./worker ./cache ./experimentos
 go test ./ml -run '^$' -bench EntrenarParalelo -benchtime 3x   # benchmark con 1M de filas
 ```
 

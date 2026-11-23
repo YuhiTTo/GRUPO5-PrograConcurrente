@@ -1,0 +1,4 @@
+POST /api/v1/predicciones: n=1000, X-Cache HIT=950
+  media=155.07µs p50=135.575µs p95=226.968µs p99=360.69µs max=5.133976ms
+GET  /api/v1/predicciones/{id}: n=40 p50=134.333µs p95=227.92µs max=499.19µs
+RESULTADO: p95 226.968µs cumple el límite de 100ms
