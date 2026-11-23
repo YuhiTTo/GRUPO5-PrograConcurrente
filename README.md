@@ -204,6 +204,15 @@ Medición del 22/11/2026 (Docker Compose en una sola máquina, 1000 solicitudes,
 Datos en `docs/evidencias/latencia_api_pc4.csv`. Es latencia local por
 loopback; no incluye red externa.
 
+## Informe PC4
+
+El informe está en `docs/informe/1ACC0065_PC4_202620_Informe_GRUPO5.docx` (y PDF),
+construido sobre la plantilla del curso. Antes de entregarlo, completen los
+nombres y códigos de los integrantes, la sección, las capturas (Swagger, Postman y
+tablero Kanban) y los porcentajes del reporte de participación. Los textos entre
+corchetes marcan cada lugar pendiente. Las figuras (SVG) están en
+`docs/informe/figuras/`.
+
 ## Informe PC3
 
 El informe del entregable está en `docs/informe/` en Word y PDF. Las figuras

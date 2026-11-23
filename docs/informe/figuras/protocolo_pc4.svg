@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="520" viewBox="0 0 1100 520" font-family="Liberation Sans" font-size="15"><defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#333"/></marker></defs><rect width="1100" height="520" fill="#fff"/>
+<text x="550" y="30" text-anchor="middle" font-size="19" font-weight="bold">Protocolo TCP y paso de entrenamiento (un mini-lote)</text>
+<rect x="50" y="50" width="140" height="36" rx="6" fill="#e3edf9" stroke="#1f5fa8"/><text x="120" y="73" text-anchor="middle" font-weight="bold">coordinador</text><line x1="120" y1="86" x2="120" y2="480" stroke="#888" stroke-dasharray="4,4"/>
+<rect x="350" y="50" width="140" height="36" rx="6" fill="#e3edf9" stroke="#1f5fa8"/><text x="420" y="73" text-anchor="middle" font-weight="bold">worker-1</text><line x1="420" y1="86" x2="420" y2="480" stroke="#888" stroke-dasharray="4,4"/>
+<rect x="650" y="50" width="140" height="36" rx="6" fill="#e3edf9" stroke="#1f5fa8"/><text x="720" y="73" text-anchor="middle" font-weight="bold">worker-2..N</text><line x1="720" y1="86" x2="720" y2="480" stroke="#888" stroke-dasharray="4,4"/>
+<line x1="420" y1="120" x2="120" y2="120" stroke="#333" stroke-width="1.5" marker-end="url(#a)"/><text x="270.0" y="114" text-anchor="middle" font-size="12">REGISTER (worker_id, registros_disponibles)</text>
+<line x1="120" y1="150" x2="420" y2="150" stroke="#333" stroke-width="1.5" marker-end="url(#a)"/><text x="270.0" y="144" text-anchor="middle" font-size="12">REGISTER_ACK (aceptado)</text>
+
+<text x="45" y="205" font-size="13" font-weight="bold">Por cada mini-lote:</text>
+<rect x="30" y="185" width="1040" height="235" rx="8" fill="#fafafa" stroke="#bbb" stroke-dasharray="6,4"/>
+<line x1="120" y1="215" x2="420" y2="215" stroke="#333" stroke-width="1.5" marker-end="url(#a)"/><text x="270.0" y="209" text-anchor="middle" font-size="12">TRAIN (job_id, pesos w, rango [inicio, fin))</text>
+
+<text x="420" y="248" text-anchor="middle" font-size="13">calcula gradiente parcial del rango</text><text x="420" y="266" text-anchor="middle" font-size="13">con goroutines (2 por worker)</text>
+<line x1="420" y1="300" x2="120" y2="300" stroke="#333" stroke-width="1.5" marker-end="url(#a)"/><text x="270.0" y="294" text-anchor="middle" font-size="12">GRADIENT_RESULT (gradiente, muestras, suma_pesos)</text>
+
+<text x="120" y="335" text-anchor="middle" font-size="13">barrera: espera a todos,</text><text x="120" y="353" text-anchor="middle" font-size="13">valida job_id y muestras,</text><text x="120" y="371" text-anchor="middle" font-size="13">suma en orden fijo y</text><text x="120" y="389" text-anchor="middle" font-size="13">actualiza w con AdamW</text>
+<line x1="120" y1="455" x2="420" y2="455" stroke="#333" stroke-width="1.5" marker-end="url(#a)"/><text x="270.0" y="449" text-anchor="middle" font-size="12">STOP (al terminar las épocas)</text>
+
+<text x="560" y="455" font-size="12">(igual para cada worker; ERROR puede enviarse en cualquier punto)</text>
+</svg>
