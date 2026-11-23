@@ -1,3 +1,5 @@
+//go:build ignore
+
 // Random Forest exploratorio (Go puro, sin dependencias externas).
 // Compara un modelo NO lineal con la regresion logistica controlada,
 // usando data/entrenamiento_controlado.csv SIN montos, presupuesto o postores.

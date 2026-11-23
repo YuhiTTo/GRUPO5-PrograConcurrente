@@ -1,0 +1,9 @@
+.git
+.gitignore
+data/
+docs/
+.vscode/
+*.log
+*.zip
+*.exe
+.env

@@ -1,0 +1,364 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "API de Predicción de Riesgo en Compras Públicas",
+        "version": "1.1.0",
+        "description": "API REST en Go para estimar riesgo de desierto o cancelación de contrataciones públicas. Usa el modelo de referencia PC3 y almacena las predicciones en MongoDB. Prototipo académico."
+    },
+    "servers": [
+        {
+            "url": "/",
+            "description": "Servidor de la API"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Salud",
+            "description": "Comprobar que el servidor HTTP está activo"
+        },
+        {
+            "name": "Predicciones",
+            "description": "Predicción de riesgo y consulta de resultados persistidos en MongoDB"
+        }
+    ],
+    "paths": {
+        "/health": {
+            "get": {
+                "tags": [
+                    "Salud"
+                ],
+                "summary": "Verificar el estado de la API",
+                "operationId": "verificarSalud",
+                "responses": {
+                    "200": {
+                        "description": "Servidor HTTP activo",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "estado": {
+                                            "type": "string",
+                                            "example": "ok"
+                                        },
+                                        "servicio": {
+                                            "type": "string",
+                                            "example": "api-pc4"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/predicciones": {
+            "post": {
+                "tags": [
+                    "Predicciones"
+                ],
+                "summary": "Calcular y guardar una predicción",
+                "description": "Calcula el riesgo usando el modelo de referencia PC3, guarda la predicción en MongoDB y devuelve su identificador. Si falla el guardado, devuelve HTTP 503.",
+                "operationId": "realizarPrediccion",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SolicitudPrediccion"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Predicción calculada y guardada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RespuestaPrediccion"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Datos o JSON inválidos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Error al guardar en MongoDB",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/predicciones/{id}": {
+            "get": {
+                "tags": [
+                    "Predicciones"
+                ],
+                "summary": "Consultar una predicción guardada por ID",
+                "operationId": "buscarPrediccionPorId",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "Identificador hexadecimal ObjectID de MongoDB (24 caracteres)",
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^[a-fA-F0-9]{24}$",
+                            "example": "6b0298af4e67977777dc8cbe"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Predicción recuperada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConsultaPrediccion"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "ID con formato inválido",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No existe una predicción con ese ID",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Error de consulta a MongoDB",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "SolicitudPrediccion": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "fecha_publicacion"
+                ],
+                "properties": {
+                    "ocid": {
+                        "type": "string",
+                        "example": "ocds-demo-001"
+                    },
+                    "metodo": {
+                        "type": "string",
+                        "example": "open"
+                    },
+                    "categoria": {
+                        "type": "string",
+                        "example": "goods"
+                    },
+                    "fecha_publicacion": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-05-20"
+                    },
+                    "buyer_id": {
+                        "type": "string",
+                        "example": "ENTIDAD-DEMO"
+                    },
+                    "metodo_detalle": {
+                        "type": "string",
+                        "example": "Licitacion Publica"
+                    },
+                    "titulo": {
+                        "type": "string",
+                        "example": "Adquisicion de equipos informaticos"
+                    },
+                    "descripcion": {
+                        "type": "string",
+                        "example": "Compra de computadoras para oficinas"
+                    }
+                }
+            },
+            "RespuestaPrediccion": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "ocid",
+                    "probabilidad",
+                    "clase_predicha",
+                    "umbral",
+                    "interpretacion",
+                    "modelo"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "ID del documento guardado en MongoDB",
+                        "example": "6b0298af4e67977777dc8cbe"
+                    },
+                    "ocid": {
+                        "type": "string",
+                        "example": "ocds-demo-001"
+                    },
+                    "probabilidad": {
+                        "type": "number",
+                        "format": "double",
+                        "minimum": 0,
+                        "maximum": 1,
+                        "example": 0.11029151429307214
+                    },
+                    "clase_predicha": {
+                        "type": "integer",
+                        "enum": [
+                            0,
+                            1
+                        ],
+                        "example": 0
+                    },
+                    "umbral": {
+                        "type": "number",
+                        "format": "double",
+                        "example": 0.22
+                    },
+                    "interpretacion": {
+                        "type": "string",
+                        "example": "Menor riesgo estimado"
+                    },
+                    "modelo": {
+                        "type": "string",
+                        "example": "Referencia PC3"
+                    }
+                }
+            },
+            "DocumentoPrediccion": {
+                "type": "object",
+                "description": "Datos de la predicción recuperados de MongoDB",
+                "properties": {
+                    "ocid": {
+                        "type": "string",
+                        "example": "ocds-demo-001"
+                    },
+                    "metodo": {
+                        "type": "string",
+                        "example": "open"
+                    },
+                    "categoria": {
+                        "type": "string",
+                        "example": "goods"
+                    },
+                    "fecha_publicacion": {
+                        "type": "string",
+                        "example": "2025-05-20"
+                    },
+                    "buyer_id": {
+                        "type": "string",
+                        "example": "ENTIDAD-DEMO"
+                    },
+                    "metodo_detalle": {
+                        "type": "string",
+                        "example": "Licitacion Publica"
+                    },
+                    "titulo": {
+                        "type": "string",
+                        "example": "Adquisicion de equipos informaticos"
+                    },
+                    "descripcion": {
+                        "type": "string",
+                        "example": "Compra de computadoras para oficinas"
+                    },
+                    "probabilidad": {
+                        "type": "number",
+                        "format": "double",
+                        "example": 0.11029151429307214
+                    },
+                    "clase_predicha": {
+                        "type": "integer",
+                        "enum": [
+                            0,
+                            1
+                        ],
+                        "example": 0
+                    },
+                    "umbral": {
+                        "type": "number",
+                        "format": "double",
+                        "example": 0.22
+                    },
+                    "interpretacion": {
+                        "type": "string",
+                        "example": "Menor riesgo estimado"
+                    },
+                    "modelo": {
+                        "type": "string",
+                        "example": "Referencia PC3"
+                    },
+                    "fecha_consulta": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-11-22T07:24:31.851Z"
+                    }
+                }
+            },
+            "ConsultaPrediccion": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "prediccion"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "6b0298af4e67977777dc8cbe"
+                    },
+                    "prediccion": {
+                        "$ref": "#/components/schemas/DocumentoPrediccion"
+                    }
+                }
+            },
+            "Error": {
+                "type": "object",
+                "properties": {
+                    "error": {
+                        "type": "string",
+                        "example": "Predicción no encontrada"
+                    }
+                }
+            }
+        }
+    }
+}

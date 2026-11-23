@@ -1,3 +1,5 @@
+//go:build ignore
+
 // V6 - Cohorte sin ausencia de monto: regresion logistica con caracteristicas de titulo, entidad y modalidad,
 // mini-lotes, Adam y calculo de gradientes paralelo en Go.
 // Proposito: seleccionar el modelo usando validacion cronologica. NO promete alto AUC.

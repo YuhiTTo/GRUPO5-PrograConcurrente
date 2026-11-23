@@ -1,3 +1,5 @@
+//go:build ignore
+
 // Experimento texto v2: bag-of-words vs bigramas, mismos datos controlados.
 // No emplea montos ni presupuestos. CSV consolidado: no valida fechas de origen.
 // Compara unigrama (opcion -usar-bigramas=false) contra unigrama+bigramas (true).

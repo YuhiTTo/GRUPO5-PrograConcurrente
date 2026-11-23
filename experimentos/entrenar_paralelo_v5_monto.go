@@ -1,3 +1,5 @@
+//go:build ignore
+
 // V5 - Ablacion especifica del monto: presencia vs valor economico,
 // mini-lotes, Adam y calculo de gradientes paralelo en Go.
 // Proposito: seleccionar el modelo usando validacion cronologica. NO promete alto AUC.
