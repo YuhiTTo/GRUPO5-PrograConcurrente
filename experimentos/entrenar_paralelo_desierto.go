@@ -1,3 +1,5 @@
+//go:build ignore
+
 // Experimento focalizado: DESIERTO puro vs clase 0 COMPLETE, caracteristicas controladas.
 // No emplea montos ni presupuestos. CSV consolidado: no valida fechas de origen.
 // Reutiliza el modelo de texto v2, pero lee un dataset por ruta configurable.

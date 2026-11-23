@@ -1,3 +1,5 @@
+//go:build ignore
+
 // PC3 - V4: Regresion Logistica paralela con normalizacion de modalidades de contratacion.
 // Uso: go run entrenar_paralelo_v4.go -workers 4 -epocas 150 -tasa 0.8
 package main
