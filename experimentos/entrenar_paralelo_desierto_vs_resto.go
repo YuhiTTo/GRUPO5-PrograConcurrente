@@ -1,3 +1,5 @@
+//go:build ignore
+
 // Experimento operacional retrospectivo: DESIERTO puro (1) vs TODOS LOS DEMAS (0).
 // No emplea montos ni presupuestos. CSV consolidado: no valida fechas de origen.
 // Reutiliza el modelo de texto v2, pero lee un dataset por ruta configurable.

@@ -1,3 +1,5 @@
+//go:build ignore
+
 // Diagnostico V5 de posible fuga por montos faltantes.
 // NO modifica datasets ni los experimentos V5 previos.
 // V5 - Regresion logistica con caracteristicas de titulo, entidad y modalidad,
